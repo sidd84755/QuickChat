@@ -2,8 +2,16 @@ const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
   participants: [{
-    type: String,
-    required: true
+    username: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    },
+    profilePicture: String,
+    status: String
   }],
   lastMessage: {
     text: String,
@@ -26,7 +34,7 @@ const roomSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-roomSchema.index({ participants: 1 });
+roomSchema.index({ 'participants.username': 1 });
 roomSchema.index({ updatedAt: -1 });
 
 const Room = mongoose.model('Room', roomSchema);
