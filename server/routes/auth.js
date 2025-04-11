@@ -53,20 +53,17 @@ router.post('/register', async (req, res) => {
 // Login user
 router.post('/login', async (req, res) => {
   try {
-    console.log('Login request received:', req.body);
     const { email, password } = req.body;
 
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      console.log('Password mismatch for user:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
