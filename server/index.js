@@ -2,11 +2,22 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const http = require('http');
+const socketIo = require('socket.io');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 // CORS configuration
 app.use(cors({
@@ -34,6 +45,35 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quickchat
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 
+// WebSocket connection handling
+io.on('connection', (socket) => {
+  console.log('New client connected');
+
+  // Join room when user connects
+  socket.on('join-room', async (roomId, token) => {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      const user = await User.findById(decoded.userId);
+      
+      if (user) {
+        socket.join(roomId);
+        console.log(`User ${user.username} joined room ${roomId}`);
+      }
+    } catch (error) {
+      console.error('Error joining room:', error);
+    }
+  });
+
+  // Handle new messages
+  socket.on('new-message', (roomId, message) => {
+    io.to(roomId).emit('message', message);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
@@ -46,6 +86,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 

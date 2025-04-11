@@ -55,7 +55,7 @@ router.post('/', auth, async (req, res) => {
     // Check if room already exists
     const existingRoom = await Room.findOne({
       participants: { $all: [req.user.username, username] }
-    });
+    }).populate('participants', 'username name profilePicture status');
 
     if (existingRoom) {
       return res.json(existingRoom);
@@ -68,7 +68,12 @@ router.post('/', auth, async (req, res) => {
     });
 
     await room.save();
-    res.status(201).json(room);
+    
+    // Populate the room with user data before sending response
+    const populatedRoom = await Room.findById(room._id)
+      .populate('participants', 'username name profilePicture status');
+      
+    res.status(201).json(populatedRoom);
   } catch (error) {
     console.error('Error creating room:', error);
     res.status(500).json({ message: 'Error creating room', error: error.message });
