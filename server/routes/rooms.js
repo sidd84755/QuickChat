@@ -29,10 +29,8 @@ const auth = async (req, res, next) => {
 router.get('/', auth, async (req, res) => {
   try {
     const rooms = await Room.find({
-      participants: req.user.username
-    })
-    .populate('participants', 'username name profilePicture status')
-    .sort({ updatedAt: -1 });
+      'participants.username': req.user.username
+    }).sort({ updatedAt: -1 });
 
     res.json(rooms);
   } catch (error) {
@@ -91,15 +89,14 @@ router.post('/', auth, async (req, res) => {
 // Get a single room by ID
 router.get('/:roomId', auth, async (req, res) => {
   try {
-    const room = await Room.findById(req.params.roomId)
-      .populate('participants', 'username name profilePicture status');
+    const room = await Room.findById(req.params.roomId);
 
     if (!room) {
       return res.status(404).json({ message: 'Room not found' });
     }
 
     // Check if user is a participant
-    if (!room.participants.includes(req.user.username)) {
+    if (!room.participants.some(p => p.username === req.user.username)) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -121,7 +118,7 @@ router.put('/:roomId/last-message', auth, async (req, res) => {
     }
 
     // Check if user is a participant
-    if (!room.participants.includes(req.user.username)) {
+    if (!room.participants.some(p => p.username === req.user.username)) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
