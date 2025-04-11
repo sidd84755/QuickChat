@@ -75,4 +75,51 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// Get a single room by ID
+router.get('/:roomId', auth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.roomId)
+      .populate('participants', 'username name profilePicture status');
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    // Check if user is a participant
+    if (!room.participants.includes(req.user.username)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    res.json(room);
+  } catch (error) {
+    console.error('Error fetching room:', error);
+    res.status(500).json({ message: 'Error fetching room', error: error.message });
+  }
+});
+
+// Update last message in a room
+router.put('/:roomId/last-message', auth, async (req, res) => {
+  try {
+    const { lastMessage } = req.body;
+    const room = await Room.findById(req.params.roomId);
+
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    // Check if user is a participant
+    if (!room.participants.includes(req.user.username)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    room.lastMessage = lastMessage;
+    await room.save();
+
+    res.json(room);
+  } catch (error) {
+    console.error('Error updating last message:', error);
+    res.status(500).json({ message: 'Error updating last message', error: error.message });
+  }
+});
+
 module.exports = router; 
