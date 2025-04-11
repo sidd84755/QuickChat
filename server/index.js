@@ -10,7 +10,14 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:19006', 'http://192.168.1.100:19006', 'exp://192.168.1.100:19000'], // Add your development URLs
+  origin: [
+    'http://localhost:19006',
+    'exp://192.168.1.100:19000',
+    'exp://192.168.1.100:19000',
+    'exp://localhost:19000',
+    'exp://localhost:19000',
+    'https://quickchat-38n9.onrender.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

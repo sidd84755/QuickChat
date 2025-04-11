@@ -98,4 +98,26 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Logout user
+router.post('/logout', async (req, res) => {
+  try {
+    // The token is already validated by the auth middleware
+    // We just need to update the user's status
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      const user = await User.findById(decoded.userId);
+      if (user) {
+        user.status = 'offline';
+        user.lastActive = new Date();
+        await user.save();
+      }
+    }
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Error in logout route:', error);
+    res.status(500).json({ message: 'Error logging out', error: error.message });
+  }
+});
+
 module.exports = router; 
