@@ -81,4 +81,23 @@ router.put('/status', auth, async (req, res) => {
   }
 });
 
+// Search users by username
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username || username.length < 3) {
+      return res.status(400).json({ message: 'Search query must be at least 3 characters' });
+    }
+
+    const users = await User.find({
+      username: { $regex: username, $options: 'i' }
+    }).select('username name profilePicture status');
+
+    res.json(users);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ message: 'Error searching users', error: error.message });
+  }
+});
+
 module.exports = router; 

@@ -37,6 +37,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quickchat
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/rooms', require('./routes/rooms'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
